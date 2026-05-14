@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout.jsx';
-import { deleteGameSession, exportResultsToCSV, getGameSessions } from '../services/adminService.js';
+import { clearPlayerResultData, deleteGameSession, exportResultsToCSV, getGameSessions } from '../services/adminService.js';
 
 export default function ResultListPage() {
   const [rows, setRows] = useState([]);
@@ -27,11 +27,26 @@ export default function ResultListPage() {
   }), [rows, search, classFilter, dateFrom, dateTo]);
 
   async function removeSession(row) {
-    const confirmed = window.confirm(`Hapus hasil testing milik ${row.player_name}? Jawaban quiz dan mini game ikut terhapus.`);
-    if (!confirmed) return;
     setError('');
     try {
       await deleteGameSession(row.id);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function clearAllResults() {
+    if (!rows.length) return;
+    const first = window.confirm(`Konfirmasi 1/3: hapus SEMUA data input pemain/siswa (${rows.length} hasil)?`);
+    if (!first) return;
+    const typed = window.prompt('Konfirmasi 2/3: ketik HAPUS DATA untuk lanjut.');
+    if (typed !== 'HAPUS DATA') return;
+    const finalConfirm = window.confirm('Konfirmasi 3/3: ini permanen. Semua game_sessions, answer_logs, dan mini_game_answer_logs akan dihapus. Lanjut?');
+    if (!finalConfirm) return;
+    setError('');
+    try {
+      await clearPlayerResultData();
       await load();
     } catch (err) {
       setError(err.message);
@@ -48,6 +63,7 @@ export default function ResultListPage() {
           <input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} aria-label="Tanggal mulai" />
           <input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} aria-label="Tanggal akhir" />
           <button type="button" onClick={() => exportResultsToCSV(filtered)}>Export CSV</button>
+          <button className="danger" type="button" onClick={clearAllResults} disabled={!rows.length}>Clear Data</button>
         </div>
         <div className="admin-table-wrap">
           <table className="admin-table">

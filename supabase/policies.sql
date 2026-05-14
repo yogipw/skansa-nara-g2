@@ -28,6 +28,8 @@ create policy "Admin can delete game sessions" on game_sessions for delete using
 
 create policy "Public can insert answer logs" on answer_logs for insert with check (true);
 create policy "Admin can read answer logs" on answer_logs for select using (is_admin());
+create policy "Admin can delete answer logs" on answer_logs for delete using (is_admin());
 
 create policy "Public can insert mini game answer logs" on mini_game_answer_logs for insert with check (true);
 create policy "Admin can read mini game answer logs" on mini_game_answer_logs for select using (is_admin());
+create policy "Admin can delete mini game answer logs" on mini_game_answer_logs for delete using (is_admin());
