@@ -27,9 +27,12 @@ export default function ResultListPage() {
   }), [rows, search, classFilter, dateFrom, dateTo]);
 
   async function removeSession(row) {
+    const confirmed = window.confirm(`Hapus data ${row.player_name}?`);
+    if (!confirmed) return;
     setError('');
     try {
       await deleteGameSession(row.id);
+      setRows((current) => current.filter((item) => item.id !== row.id));
       await load();
     } catch (err) {
       setError(err.message);
@@ -47,6 +50,7 @@ export default function ResultListPage() {
     setError('');
     try {
       await clearPlayerResultData();
+      setRows([]);
       await load();
     } catch (err) {
       setError(err.message);

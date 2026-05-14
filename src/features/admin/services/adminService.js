@@ -103,27 +103,14 @@ export async function getGameSessions() {
 
 export async function deleteGameSession(sessionId) {
   const client = requireSupabase();
-  const [{ error: answerError }, { error: miniError }] = await Promise.all([
-    client.from('answer_logs').delete().eq('session_id', sessionId),
-    client.from('mini_game_answer_logs').delete().eq('session_id', sessionId),
-  ]);
-  if (answerError) throw answerError;
-  if (miniError) throw miniError;
-  const { error: sessionError } = await client.from('game_sessions').delete().eq('id', sessionId);
-  if (sessionError) throw sessionError;
+  const { error } = await client.rpc('delete_player_result', { session_uuid: sessionId });
+  if (error) throw error;
 }
 
 export async function clearPlayerResultData() {
   const client = requireSupabase();
-  const zeroUuid = '00000000-0000-0000-0000-000000000000';
-  const [{ error: answerError }, { error: miniError }] = await Promise.all([
-    client.from('answer_logs').delete().neq('id', zeroUuid),
-    client.from('mini_game_answer_logs').delete().neq('id', zeroUuid),
-  ]);
-  if (answerError) throw answerError;
-  if (miniError) throw miniError;
-  const { error: sessionError } = await client.from('game_sessions').delete().neq('id', zeroUuid);
-  if (sessionError) throw sessionError;
+  const { error } = await client.rpc('clear_player_results');
+  if (error) throw error;
 }
 
 export async function getGameSessionDetail(sessionId) {

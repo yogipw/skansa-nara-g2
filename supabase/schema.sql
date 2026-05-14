@@ -176,3 +176,34 @@ as $$
   where gs.id = session_uuid
   limit 1;
 $$;
+
+create or replace function delete_player_result(session_uuid uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_admin() then
+    raise exception 'Admin access required';
+  end if;
+
+  delete from game_sessions
+  where id = session_uuid;
+end;
+$$;
+
+create or replace function clear_player_results()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not is_admin() then
+    raise exception 'Admin access required';
+  end if;
+
+  delete from game_sessions;
+end;
+$$;
