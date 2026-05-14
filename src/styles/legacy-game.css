@@ -1,0 +1,66 @@
+@import '../../style.css';
+
+#root {
+  min-height: 100vh;
+}
+
+.field-stack {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.form-error {
+  margin: -4px 0 10px;
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.screen-route {
+  min-height: 100vh;
+}
+
+.answer-btn.selected-answer {
+  transform: translateY(-2px);
+}
+
+.mg-explain-box.show {
+  display: block;
+}
+
+.cert-toggle-btn {
+  border-radius: 999px;
+  justify-content: space-between;
+}
+
+.cert-toggle-btn.is-on {
+  background: linear-gradient(135deg, #FFD93D, #FF8C42);
+  color: var(--text);
+}
+
+.cert-toggle-switch {
+  width: 48px;
+  height: 26px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cert-toggle-switch span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 2px 8px rgba(45, 27, 78, 0.22);
+  transition: transform 0.2s ease;
+}
+
+.cert-toggle-btn.is-on .cert-toggle-switch span {
+  transform: translateX(20px);
+}
