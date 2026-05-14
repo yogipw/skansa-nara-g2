@@ -35,7 +35,12 @@ body.ch4-bg { --bg-chapter: #EEF8FF; }
 body.mg-bg  { --bg-chapter: #FFFBF0; }
 body { background: var(--bg-chapter); }
 
-#stars-canvas { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0; }
+#stars-canvas,
+#confetti-canvas,
+#fireworks-canvas { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0; }
+
+#confetti-canvas,
+#fireworks-canvas { z-index:35; }
 
 .screen {
   position:fixed;top:0;left:0;width:100%;height:100%;
@@ -128,6 +133,17 @@ body { background: var(--bg-chapter); }
   display:block;transition:all 0.3s;
   filter:drop-shadow(0 4px 8px rgba(0,0,0,0.15));
 }
+#nara-emoji.nara-correct,
+#nara-emoji.nara-mgCorrect { animation:mascot-jump 0.6s ease forwards; }
+#nara-emoji.nara-wrong,
+#nara-emoji.nara-mgWrong { animation:mascot-shake 0.6s ease forwards; }
+#nara-emoji.nara-streak3 { animation:mascot-spin 0.7s ease forwards; }
+#nara-emoji.nara-streak5,
+#nara-emoji.nara-win { animation:mascot-explode 0.8s ease forwards; }
+#nara-emoji.nara-streakBreak,
+#nara-emoji.nara-mgTimeout { animation:mascot-shake-big 0.6s ease forwards; }
+#nara-emoji.nara-minigame { animation:mascot-dance 0.55s ease-in-out infinite; }
+#nara-emoji.nara-lose { animation:mascot-idle 1.4s ease-in-out infinite; }
 #nara-bubble {
   background:white;border:2px solid var(--border);
   border-radius:14px 14px 4px 14px;
@@ -882,9 +898,33 @@ body { background: var(--bg-chapter); }
     order:2;
     font-size:11px;
   }
+  #nara-corner {
+    right:10px;
+    bottom:64px;
+  }
+  #nara-emoji {
+    font-size:40px;
+  }
+  #nara-bubble {
+    max-width:150px;
+    font-size:11px;
+    padding:7px 10px;
+  }
   .question-text {
     font-size:17px;
     line-height:1.45;
+  }
+  .mg-item-body {
+    padding:14px;
+  }
+  .mg-statement {
+    font-size:13px;
+  }
+  .myth-buttons {
+    flex-direction:column;
+  }
+  .myth-btn {
+    width:100%;
   }
 }
 .fade-up{animation:fadeUp 0.5s forwards}

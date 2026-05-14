@@ -220,3 +220,47 @@ export function toggleGameMuted() {
 export function getGameAudioState() {
   return { muted: isMuted, running: bgmRunning };
 }
+
+function tone(freq, duration, delay = 0, type = 'sine', gainValue = 0.16) {
+  if (!audioCtx || isMuted) return;
+  const t = audioCtx.currentTime + delay;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  osc.connect(g);
+  g.connect(masterGain);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(gainValue, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+  osc.start(t);
+  osc.stop(t + duration + 0.02);
+}
+
+export function playGameSfx(type) {
+  if (!initGameAudio() || isMuted) return;
+  if (type === 'correct') {
+    tone(659.25, 0.12, 0, 'triangle', 0.12);
+    tone(987.77, 0.16, 0.08, 'triangle', 0.14);
+    return;
+  }
+  if (type === 'wrong') {
+    tone(220, 0.16, 0, 'sawtooth', 0.09);
+    tone(164.81, 0.18, 0.1, 'sawtooth', 0.08);
+    return;
+  }
+  if (type === 'streak') {
+    tone(523.25, 0.09, 0, 'square', 0.1);
+    tone(783.99, 0.1, 0.07, 'square', 0.11);
+    tone(1046.5, 0.18, 0.15, 'square', 0.12);
+    return;
+  }
+  if (type === 'timeout') {
+    tone(330, 0.1, 0, 'sine', 0.08);
+    tone(247, 0.22, 0.12, 'sine', 0.08);
+    return;
+  }
+  if (type === 'win') {
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, index) => tone(freq, 0.18, index * 0.08, 'triangle', 0.12));
+  }
+}

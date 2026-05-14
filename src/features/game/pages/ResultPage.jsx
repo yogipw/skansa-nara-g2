@@ -5,6 +5,75 @@ import { getResultBySessionId } from '../services/gameService.js';
 import { fallbackQuotes, fallbackRanks } from '../data/fallbackData.js';
 import { getRank } from '../utils/scoring.js';
 import { shareWhatsApp } from '../utils/share.js';
+import { playGameSfx } from '../utils/audioEngine.js';
+import { emitNara } from '../utils/naraEvents.js';
+
+function launchLightFireworks() {
+  const canvas = document.getElementById('fireworks-canvas');
+  if (!canvas) return undefined;
+  const context = canvas.getContext('2d');
+  const ratio = window.devicePixelRatio || 1;
+  let frame = 0;
+  let animationId = 0;
+  const particles = [];
+
+  function resize() {
+    canvas.width = Math.floor(window.innerWidth * ratio);
+    canvas.height = Math.floor(window.innerHeight * ratio);
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+
+  function burst(x, y) {
+    const colors = ['#FFD93D', '#FF6B9D', '#9B59FF', '#4ECDC4', '#6BCB77'];
+    for (let i = 0; i < 22; i += 1) {
+      const angle = (Math.PI * 2 * i) / 22;
+      const speed = 1.4 + Math.random() * 2.4;
+      particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 52,
+        color: colors[i % colors.length],
+      });
+    }
+  }
+
+  function draw() {
+    frame += 1;
+    context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    if (frame % 28 === 1 && frame < 130) {
+      burst(window.innerWidth * (0.25 + Math.random() * 0.5), window.innerHeight * (0.16 + Math.random() * 0.32));
+    }
+    particles.forEach((particle) => {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.vy += 0.035;
+      particle.life -= 1;
+      context.globalAlpha = Math.max(particle.life / 52, 0);
+      context.fillStyle = particle.color;
+      context.beginPath();
+      context.arc(particle.x, particle.y, 2.4, 0, Math.PI * 2);
+      context.fill();
+    });
+    context.globalAlpha = 1;
+    for (let i = particles.length - 1; i >= 0; i -= 1) {
+      if (particles[i].life <= 0) particles.splice(i, 1);
+    }
+    if (frame < 190 || particles.length) animationId = window.requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  draw();
+  return () => {
+    window.removeEventListener('resize', resize);
+    window.cancelAnimationFrame(animationId);
+    context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  };
+}
 
 function Certificate({ result, accuracy, rank }) {
   return (
@@ -41,6 +110,16 @@ export default function ResultPage() {
   useEffect(() => {
     getResultBySessionId(sessionId).then(setResult).catch((err) => setError(err.message));
   }, [sessionId]);
+
+  useEffect(() => {
+    if (!result) return undefined;
+    const accuracy = Math.round(Number(result.accuracy || 0));
+    const isWin = accuracy >= 75;
+    emitNara({ mood: isWin ? 'win' : 'lose', commentKey: isWin ? 'win' : 'lose', duration: 5200 });
+    if (!isWin) return undefined;
+    playGameSfx('win');
+    return launchLightFireworks();
+  }, [result]);
 
   if (error) {
     return <GameShell><div className="screen active"><div className="card"><div className="section-title">Hasil tidak ditemukan</div><p className="section-sub">{error}</p><Link className="btn btn-primary" to="/">Main Lagi</Link></div></div></GameShell>;

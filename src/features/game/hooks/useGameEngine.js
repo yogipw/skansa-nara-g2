@@ -10,6 +10,8 @@ import {
   getActiveMiniGameItems,
   getQuestionsForGame,
 } from '../services/gameService.js';
+import { playGameSfx } from '../utils/audioEngine.js';
+import { emitNara } from '../utils/naraEvents.js';
 import { calculateAccuracy, calculateScore, getRank, maxPossibleScore } from '../utils/scoring.js';
 
 const initialState = {
@@ -80,6 +82,15 @@ export default function useGameEngine() {
       const nextStreak = isCorrect ? current.streak + 1 : 0;
       const bestStreak = Math.max(current.bestStreak, nextStreak);
       const scoreGained = isCorrect ? (current.settings.points_correct ?? question.points ?? 10) : (current.settings.points_wrong ?? 0);
+      if (isCorrect) {
+        const streakMood = nextStreak >= 5 ? 'streak5' : nextStreak >= 3 ? 'streak3' : 'correct';
+        emitNara({ mood: streakMood, commentKey: streakMood });
+        playGameSfx(nextStreak >= 3 ? 'streak' : 'correct');
+      } else {
+        const hadStreak = current.streak >= 2;
+        emitNara({ mood: hadStreak ? 'streakBreak' : 'wrong', commentKey: hadStreak ? 'streakBreak' : 'wrong' });
+        playGameSfx('wrong');
+      }
       const log = {
         question_id: question.id,
         chapter_id: question.chapter_id,
@@ -119,6 +130,7 @@ export default function useGameEngine() {
         && nextIndex % interval === 0
         && current.miniGameItems.some((item) => item.round_number === activeMiniRound);
       if (shouldShowMiniGame) {
+        emitNara({ mood: 'minigame', commentKey: 'minigame' });
         return { ...current, status: 'minigame', activeMiniRound, answered: false, selectedOption: null };
       }
       if (nextIndex >= current.questions.length) {
@@ -132,6 +144,13 @@ export default function useGameEngine() {
     setState((current) => {
       const isCorrect = selectedAnswer === item.correct_answer;
       const scoreGained = isCorrect ? (current.settings.mini_game_points ?? 5) : 0;
+      if (selectedAnswer === 'timeout') {
+        emitNara({ mood: 'mgTimeout', commentKey: 'mgTimeout' });
+        playGameSfx('timeout');
+      } else {
+        emitNara({ mood: isCorrect ? 'mgCorrect' : 'mgWrong', commentKey: isCorrect ? 'mgCorrect' : 'mgWrong' });
+        playGameSfx(isCorrect ? 'correct' : 'wrong');
+      }
       return {
         ...current,
         score: current.score + scoreGained,
